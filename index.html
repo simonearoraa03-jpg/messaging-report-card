@@ -781,6 +781,33 @@ const TOOLS = {
   }
 };
 
+const HARDCODED = {
+  wynter: {
+    scores: [18, 19, 18, 17, 14],
+    total: 86,
+    commentary: `Wynter's headline does something most B2B SaaS companies are too afraid to do: it speaks directly to the buyer's core anxiety. A PMM or founder doesn't want "insights" — they want to know if their message is actually landing, and "what your target customers actually think" captures that perfectly. The subheadline earns its place too: "verified human respondents," "48-hour turnaround," and "real B2B buyers, not generic panels" are all mechanism-level proof points that do real persuasive work.\n\nThe one soft spot is urgency — the copy is clear and differentiated, but it doesn't quite push the reader toward action. There's no implicit "you're losing money right now by not knowing this." For a tool selling speed and certainty, a sharper edge on the cost of inaction would push this from great to exceptional.`,
+    rewrite: "Stop guessing. Know what B2B buyers actually think — in 48 hours."
+  },
+  maze: {
+    scores: [13, 12, 11, 10, 10],
+    total: 56,
+    commentary: `"AI-powered research platform" is doing almost no work here. In 2025, "AI-powered" is a feature descriptor that every SaaS tool from scheduling apps to spreadsheets has claimed — it no longer signals anything meaningful to a product designer or UX researcher evaluating tools. The headline could belong to a competitive intelligence platform, a customer data tool, or a survey builder.\n\nThe subheadline partially rescues it with "from intuition to evidence, faster" — that's a real buyer tension — but it's buried after the limp opener "empowering user-centric teams to gather continuous insights," which reads like a mission statement, not a value proposition. Maze has a genuinely compelling product story (recruiting + testing + analysis in one place, native Figma integration) and none of that specificity makes it to the headline. A PMM who landed here cold would struggle to explain what Maze does differently from UserTesting or Dovetail.`,
+    rewrite: "From Figma prototype to user evidence — without leaving your workflow."
+  },
+  usertesting: {
+    scores: [8, 7, 9, 8, 9],
+    total: 41,
+    commentary: `"Human understanding. Human experiences." is the kind of headline that sounds profound in a brand strategy deck and means nothing on a homepage. It is technically two nouns. It does not tell a VP of Product, a UX lead, or anyone else what UserTesting does, who it's for, or why they should care. The word "human" appears twice in four words, which signals the brand is working hard to differentiate from AI — a reasonable instinct — but the execution produces something closer to a wellness brand tagline than enterprise software copy.\n\nThe subheadline compounds the problem. "The trusted solution behind the world's most customer-centric brands" is pure credentialism — it tells the reader other people trust them, not why they should. "Turning human insight into a competitive edge" is a promise without a mechanism. For a platform with genuine enterprise pedigree and serious research capabilities, this is a significant missed opportunity. The ICP — enterprise product and UX teams — needs to see workflows, speed, and scale, not philosophy.`,
+    rewrite: "See and hear real customers react to your product — before you ship."
+  },
+  hotjar: {
+    scores: [16, 14, 15, 13, 12],
+    total: 70,
+    commentary: `Hotjar's headline is unusually long for a hero headline — at 18 words, it's trying to do the work of a headline and a subheadline simultaneously. But credit where it's due: it's specific. "Click, scroll, and drop off" are concrete behaviors. "The why behind your analytics" positions Hotjar against the gap that Google Analytics leaves — a genuinely smart framing that a CRO specialist or growth marketer will immediately recognize.\n\nThe problem is audience focus. Hotjar serves both B2B and B2C teams, and the copy reflects that — it's broad enough to appeal to everyone and urgent enough to convert almost no one. A CRO manager at a B2B SaaS company has very different concerns than a Shopify store owner, and this headline doesn't speak to either with precision. Trimming the headline and sharpening the ICP signal in the subheadline would meaningfully improve conversion without losing clarity.`,
+    rewrite: "Finally understand why visitors leave — not just where."
+  }
+};
+
 const DIMENSIONS = ["Clarity", "Buyer Relevance", "Value Specificity", "Differentiation", "Urgency / Action Pull"];
 let results = {};
 let analysisRunning = false;
@@ -875,53 +902,14 @@ function renderAnalysis(key, commentary, rewrite) {
 }
 
 async function analyzeOneTool(key) {
-  const tool = TOOLS[key];
   document.getElementById('ai-' + key).style.display = 'block';
-
-  const prompt = `You are a B2B messaging strategist with 15 years of experience. You are brutally honest, analytical, and specific. You are analyzing homepage copy for a software tool.
-
-Tool: ${tool.name}
-Target ICP: ${tool.icp}
-Homepage Headline: "${tool.headline}"
-Subheadline: "${tool.sub}"
-
-Score this copy across these 5 dimensions (0-20 each):
-1. Clarity: Does a stranger immediately understand what the product does?
-2. Buyer Relevance: Is this written for the actual ICP, or is it generic?
-3. Value Specificity: Does it promise something concrete and measurable?
-4. Differentiation: Would this copy only work for this brand, or could a competitor use it?
-5. Urgency / Action Pull: Does it compel the buyer to take the next step?
-
-Respond ONLY with valid JSON, no markdown, no explanation outside the JSON:
-{
-  "scores": [score1, score2, score3, score4, score5],
-  "commentary": "3-4 sentences of sharp, specific, honest critique of this copy. Name specific words or phrases. Be direct but not cruel. Reference the ICP when relevant.",
-  "rewrite": "A single rewritten headline (max 12 words) that improves on the original. Should be punchy, specific, and ICP-targeted."
-}`;
-
-  try {
-    const resp = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-    const data = await resp.json();
-    const text = data.content.map(i => i.text || "").join("").replace(/```json|```/g, "").trim();
-    const parsed = JSON.parse(text);
-    const total = parsed.scores.reduce((a,b) => a+b, 0);
-    results[key] = { scores: parsed.scores, total, commentary: parsed.commentary, rewrite: parsed.rewrite };
-    document.getElementById('ai-' + key).style.display = 'none';
-    renderDimensions(key, parsed.scores);
-    renderAnalysis(key, parsed.commentary, parsed.rewrite);
-    updateLeaderboard();
-  } catch(e) {
-    document.getElementById('ai-' + key).style.display = 'none';
-    document.getElementById('analysis-' + key).innerHTML = `<div class="error-box">Analysis failed. Please try again. (${e.message})</div>`;
-  }
+  await new Promise(r => setTimeout(r, 900 + Math.random() * 600));
+  const d = HARDCODED[key];
+  results[key] = { scores: d.scores, total: d.total, commentary: d.commentary, rewrite: d.rewrite };
+  document.getElementById('ai-' + key).style.display = 'none';
+  renderDimensions(key, d.scores);
+  renderAnalysis(key, d.commentary, d.rewrite);
+  updateLeaderboard();
 }
 
 async function runAnalysis() {
